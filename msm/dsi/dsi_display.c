@@ -4308,6 +4308,10 @@ static int dsi_display_parse_dt(struct dsi_display *display)
 			break;
 	}
 
+#ifdef CONFIG_DRM_SDE_SPECIFIC_PANEL
+	dsi_panel_driver_detection(&display->panel_node);
+#endif /* CONFIG_DRM_SDE_SPECIFIC_PANEL */
+
 	DSI_DEBUG("success\n");
 error:
 	return rc;

@@ -168,6 +168,7 @@ struct panel_specific_pdata {
 };
 
 /* Somc Original function */
+void dsi_panel_driver_detection(struct device_node **np);
 int dsi_panel_driver_pinctrl_init(struct dsi_panel *panel);
 int dsi_panel_driver_gpio_request(struct dsi_panel *panel);
 int dsi_panel_driver_gpio_release(struct dsi_panel *panel);

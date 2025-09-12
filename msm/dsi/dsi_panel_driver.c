@@ -24,12 +24,66 @@ struct device virtdev;
 
 static char *res_buf;
 static int buf_sz;
+static unsigned long lcdid_adc = 1505000;
+
 #define DSI_BUF_SIZE 1024
 #define TMP_BUF_SZ 128
 #define MAX_WRITE_DATA 100
 
 #define BR_MAX_FIGURE	9
 #define AREA_COUNT_MAX	9999999
+
+#define ADC_RNG_MIN		0
+#define ADC_RNG_MAX		1
+#define ADC_PNUM		2
+
+static int __init lcdid_adc_setup(char *str)
+{
+	unsigned long res;
+
+	if (!*str)
+		return 0;
+	if (!kstrtoul(str, 0, &res)) {
+		lcdid_adc = res;
+	}
+
+	return 1;
+}
+__setup("lcdid_adc=", lcdid_adc_setup);
+
+void dsi_panel_driver_detection(struct device_node **np)
+{
+	u32 res[ADC_PNUM];
+	int rc = 0;
+	struct device_node *parent;
+	struct device_node *next;
+	u32 dev_index = 0;
+	u32 dsi_index = 0;
+	u32 adc_uv = 0;
+
+	parent = of_get_parent(*np);
+
+	adc_uv = lcdid_adc;
+	pr_notice("%s: physical:%d\n", __func__, adc_uv);
+
+	for_each_child_of_node(parent, next) {
+		rc = of_property_read_u32(next, "somc,dsi-index", &dsi_index);
+		if (rc)
+			dsi_index = 0;
+		if (dsi_index != dev_index)
+			continue;
+
+		rc = of_property_read_u32_array(next,
+				"somc,lcd-id-adc", res, ADC_PNUM);
+		if (rc)
+			continue;
+		if (adc_uv < res[ADC_RNG_MIN] || res[ADC_RNG_MAX] < adc_uv)
+			continue;
+
+		*np = next;
+		break;
+	}
+}
 
 static int dsi_panel_driver_vreg_name_to_config(
 		struct dsi_regulator_info *regs,
