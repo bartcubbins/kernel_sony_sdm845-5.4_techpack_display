@@ -711,9 +711,13 @@ static inline u32 sde_hw_ctl_get_intf(struct sde_hw_ctl *ctx)
 
 	c = &ctx->hw;
 	ctl_top = SDE_REG_READ(c, CTL_TOP);
+	if (!ctl_top)
+		return 0;
 
-	intf_active = (ctl_top > 0) ?
-		BIT(ctl_top - 1) : 0;
+	if (IS_SDM845_TARGET(ctx->hw.hwversion))
+		intf_active = (ctl_top >> 4) & 0xf;
+	else
+		intf_active = BIT(ctl_top - 1);
 
 	return intf_active;
 }
